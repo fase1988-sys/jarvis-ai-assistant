@@ -37,6 +37,7 @@ export class AgentHandler {
     try {
       let openaiKey: string | null = null;
       let geminiKey: string | null = null;
+      let nvidiaKey: string | null = null;
 
       try {
         openaiKey = await this.secureAPI.getOpenAIKey();
@@ -49,6 +50,12 @@ export class AgentHandler {
         Logger.debug('[AgentHandler] Gemini key not available');
       }
 
+      try {
+        nvidiaKey = await this.secureAPI.getNvidiaKey();
+      } catch (e) {
+        Logger.debug('[AgentHandler] NVIDIA key not available');
+      }
+
       const settings = AppSettingsService.getInstance().getSettings();
       console.log(`[DEBUG] AgentHandler.ensureAgentInitialized: useOllama=${settings.useOllama}, ollamaUrl=${settings.ollamaUrl}, ollamaModel=${settings.ollamaModel}`);
       Logger.debug(`[AgentHandler] Initializing: openAI=${!!openaiKey}, gemini=${!!geminiKey}, ollama=${settings.useOllama}`);
@@ -57,6 +64,10 @@ export class AgentHandler {
         useOllama: settings.useOllama,
         ollamaUrl: settings.ollamaUrl,
         ollamaModel: settings.ollamaModel
+      }, {
+        useNvidia: settings.aiProvider === 'nvidia',
+        apiKey: nvidiaKey || undefined,
+        model: settings.nvidiaModel
       });
     } catch (error) {
       Logger.error('❌ [AgentHandler] Failed to initialize agent:', error);
