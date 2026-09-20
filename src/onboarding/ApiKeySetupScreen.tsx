@@ -41,8 +41,11 @@ const LOCAL_MODELS: LocalModelOption[] = [...PARAKEET_OPTIONS, ...WHISPER_MODELS
 const ApiKeySetupScreen: React.FC<ApiKeySetupScreenProps> = ({ onNext, onApiKeysChange }) => {
   const [deepgramKey, setDeepgramKey] = useState('');
   const [geminiKey, setGeminiKey] = useState('');
+  const [nvidiaKey, setNvidiaKey] = useState('');
+  const [nvidiaModel, setNvidiaModel] = useState('meta/llama-3.1-70b-instruct');
   const [showDeepgramKey, setShowDeepgramKey] = useState(false);
   const [showGeminiKey, setShowGeminiKey] = useState(false);
+  const [showNvidiaKey, setShowNvidiaKey] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [hasExistingKeys, setHasExistingKeys] = useState(false);
@@ -50,7 +53,7 @@ const ApiKeySetupScreen: React.FC<ApiKeySetupScreenProps> = ({ onNext, onApiKeys
 
   // AI cleanup intelligence: gemini | ollama | none
   // "none" makes Step 2 truly optional — raw transcription only.
-  const [aiChoice, setAiChoice] = useState<'gemini' | 'ollama' | 'none'>('gemini');
+  const [aiChoice, setAiChoice] = useState<'gemini' | 'nvidia' | 'ollama' | 'none'>('gemini');
 
   // Ollama state
   const [ollamaUrl, setOllamaUrl] = useState('http://localhost:11434');
@@ -88,6 +91,10 @@ const ApiKeySetupScreen: React.FC<ApiKeySetupScreenProps> = ({ onNext, onApiKeys
               setGeminiKey(keys.geminiApiKey);
               setHasExistingKeys(true);
             }
+            if (keys.nvidiaApiKey) {
+              setNvidiaKey(keys.nvidiaApiKey);
+              setHasExistingKeys(true);
+            }
           }
         }
 
@@ -96,7 +103,10 @@ const ApiKeySetupScreen: React.FC<ApiKeySetupScreenProps> = ({ onNext, onApiKeys
           if (settings) {
             if (settings.useLocalModel) setUseLocalModel(true);
             if (settings.localModelId) setLocalModelId(settings.localModelId);
-            if (settings.useOllama) {
+            if (settings.nvidiaModel) setNvidiaModel(settings.nvidiaModel);
+            if (settings.aiProvider === 'nvidia') {
+              setAiChoice('nvidia');
+            } else if (settings.useOllama) {
               setAiChoice('ollama');
             } else if (settings.aiPostProcessing === false) {
               setAiChoice('none');
@@ -287,6 +297,7 @@ const ApiKeySetupScreen: React.FC<ApiKeySetupScreenProps> = ({ onNext, onApiKeys
         await electronAPI.saveApiKeys({
           deepgramApiKey: deepgramKey.trim(),
           geminiApiKey: geminiKey.trim(),
+          nvidiaApiKey: nvidiaKey.trim(),
         });
       }
       if (electronAPI?.appUpdateSettings) {
@@ -296,7 +307,9 @@ const ApiKeySetupScreen: React.FC<ApiKeySetupScreenProps> = ({ onNext, onApiKeys
           useOllama: aiChoice === 'ollama',
           aiPostProcessing: aiChoice !== 'none',
           ollamaUrl,
-          ollamaModel
+          ollamaModel,
+          aiProvider: aiChoice === 'nvidia' ? 'nvidia' : aiChoice === 'gemini' ? 'gemini' : undefined,
+          nvidiaModel
         });
       }
       setSaved(true);
@@ -331,14 +344,15 @@ const ApiKeySetupScreen: React.FC<ApiKeySetupScreenProps> = ({ onNext, onApiKeys
     }
   };
 
-  const setAiChoiceAndPersist = async (choice: 'gemini' | 'ollama' | 'none') => {
+  const setAiChoiceAndPersist = async (choice: 'gemini' | 'nvidia' | 'ollama' | 'none') => {
     setAiChoice(choice);
     try {
       const electronAPI = (window as any).electronAPI;
       if (electronAPI?.appUpdateSettings) {
         await electronAPI.appUpdateSettings({
           useOllama: choice === 'ollama',
-          aiPostProcessing: choice !== 'none'
+          aiPostProcessing: choice !== 'none',
+          aiProvider: choice === 'nvidia' ? 'nvidia' : choice === 'gemini' ? 'gemini' : undefined
         });
       }
       // Anonymous: see Skip-rate vs Gemini vs Ollama distribution.
@@ -604,7 +618,22 @@ const ApiKeySetupScreen: React.FC<ApiKeySetupScreenProps> = ({ onNext, onApiKeys
             </div>
           </div>
 
-          {/* Option B: Ollama */}
+          {/* Option B: NVIDIA NIM */}
+          <div className={`p-4 rounded-xl border transition-all ${aiChoice === 'nvidia' ? 'bg-green-500/10 border-green-500/40' : 'bg-white/5 border-white/10'}`}>
+            <button className="w-full text-left flex items-center justify-between mb-2" onClick={() => setAiChoiceAndPersist('nvidia')}>
+              <div className="flex items-center gap-2">
+                <h4 className={`text-sm font-medium ${theme.text.primary}`}>Option B: NVIDIA NIM</h4>
+                {aiChoice === 'nvidia' && <span className="text-xs text-green-400 font-medium">Selected</span>}
+              </div>
+            </button>
+            {aiChoice === 'nvidia' && <div className="space-y-3 mt-3">
+              <div className="relative"><input type={showNvidiaKey ? 'text' : 'password'} value={nvidiaKey} onChange={(e) => setNvidiaKey(e.target.value)} placeholder="nvapi-..." className="w-full bg-black/40 rounded-lg px-4 py-2.5 pr-16 text-white border border-green-500/30 focus:outline-none font-mono text-xs" /><button type="button" onClick={() => setShowNvidiaKey(!showNvidiaKey)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 text-xs">{showNvidiaKey ? 'Hide' : 'Show'}</button></div>
+              <input type="text" value={nvidiaModel} onChange={(e) => setNvidiaModel(e.target.value)} placeholder="meta/llama-3.1-70b-instruct" className="w-full bg-black/40 rounded-lg px-4 py-2.5 text-white border border-green-500/30 focus:outline-none font-mono text-xs" />
+              <p className={`text-xs ${theme.text.tertiary}`}>Uses NVIDIA's OpenAI-compatible NIM API. Your key is stored locally.</p>
+            </div>}
+          </div>
+
+          {/* Option C: Ollama */}
           <div className={`p-4 rounded-xl border transition-all ${aiChoice === 'ollama' ? 'bg-emerald-500/10 border-emerald-500/40' : 'bg-white/5 border-white/10'}`}>
             <button className="w-full text-left flex items-center justify-between mb-2" onClick={() => setAiChoiceAndPersist('ollama')}>
               <div className="flex items-center gap-2">
@@ -684,11 +713,11 @@ const ApiKeySetupScreen: React.FC<ApiKeySetupScreenProps> = ({ onNext, onApiKeys
             )}
           </div>
 
-          {/* Option C: Skip — raw transcription only */}
+          {/* Option D: Skip — raw transcription only */}
           <div className={`p-4 rounded-xl border transition-all ${aiChoice === 'none' ? 'bg-white/10 border-white/30' : 'bg-white/5 border-white/10'}`}>
             <button className="w-full text-left flex items-center justify-between" onClick={() => setAiChoiceAndPersist('none')}>
               <div className="flex items-center gap-2">
-                <h4 className={`text-sm font-medium ${theme.text.primary}`}>Option C: Skip — raw transcription only</h4>
+                <h4 className={`text-sm font-medium ${theme.text.primary}`}>Option D: Skip — raw transcription only</h4>
                 {aiChoice === 'none' && (
                   <>
                     <span className={`text-xs ${theme.text.tertiary} font-medium`}>Selected</span>
@@ -736,7 +765,9 @@ const ApiKeySetupScreen: React.FC<ApiKeySetupScreenProps> = ({ onNext, onApiKeys
             ? `🖥️ Local ${isParakeetModel(localModelId) ? 'Parakeet' : 'Whisper'}`
             : '☁️ Deepgram Cloud'}
           {' + '}
-          {aiChoice === 'ollama'
+          {aiChoice === 'nvidia'
+            ? (nvidiaKey.trim() ? `✅ NVIDIA NIM (${nvidiaModel})` : '⚠️ NVIDIA key not set')
+            : aiChoice === 'ollama'
             ? `🦙 Local Ollama (${ollamaModel})`
             : aiChoice === 'gemini'
               ? (geminiKey.trim() ? '✅ Gemini AI' : '⚠️ Gemini key not set')
