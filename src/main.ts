@@ -1896,9 +1896,14 @@ app.whenReady().then(async () => {
 
   // Defer heavy operations to prevent blocking startup
   startupOptimizer.deferTask(async () => {
-    // Check for updates after a delay (force in dev mode for testing)
-    updateService.forceCheckForUpdates();
-    updateService.startPeriodicChecks();
+    // Never let a local/unpackaged development build replace itself with a
+    // published beta. Updates remain enabled for packaged production builds.
+    if (app.isPackaged) {
+      updateService.forceCheckForUpdates();
+      updateService.startPeriodicChecks();
+    } else {
+      Logger.info('🔧 [Startup] Development build detected - automatic updates disabled');
+    }
 
     // Only initialize Jarvis if we have saved auth state, otherwise wait for user login
     const savedAuthState = loadAuthState();
