@@ -40,6 +40,10 @@ export class SecureAPIService {
     return this.getProviderKey('anthropic');
   }
 
+  async getNvidiaKey(): Promise<string> {
+    return this.getProviderKey('nvidia');
+  }
+
   /**
    * Get Ollama settings for local LLM usage
    */
@@ -94,6 +98,7 @@ export class SecureAPIService {
         deepgram: settings.deepgramApiKey,
         anthropic: settings.anthropicApiKey,
         gemini: settings.geminiApiKey,
+        nvidia: settings.nvidiaApiKey,
       };
       const settingsValue = cleanKey(settingsKeyMap[cacheKey]);
       if (settingsValue) {
