@@ -233,21 +233,35 @@ async function initializeJarvis() {
 
     // OPEN SOURCE: API keys loaded from .env file or local server
 
-    // Get API keys from local environment
-    const openaiKey = await secureAPI.getOpenAIKey();
+    // Get API keys from local settings. No cloud provider is mandatory:
+    // users may select NVIDIA NIM, Gemini, Ollama, or run without AI post-processing.
+    let openaiKey = '';
     let geminiKey = '';
     let anthropicKey = '';
+    let nvidiaKey = '';
+
+    try {
+      openaiKey = await secureAPI.getOpenAIKey();
+    } catch (error) {
+      Logger.info('OPENAI_API_KEY not available - continuing with the selected AI provider');
+    }
 
     try {
       geminiKey = await secureAPI.getGeminiKey();
     } catch (error) {
-      Logger.warning('GEMINI_API_KEY not available - some features may be limited');
+      Logger.info('GEMINI_API_KEY not available - continuing with the selected AI provider');
     }
 
     try {
       anthropicKey = await secureAPI.getAnthropicKey();
     } catch (error) {
-      Logger.warning('ANTHROPIC_API_KEY not available - some features may be limited');
+      Logger.info('ANTHROPIC_API_KEY not available - continuing with the selected AI provider');
+    }
+
+    try {
+      nvidiaKey = await secureAPI.getNvidiaKey();
+    } catch (error) {
+      Logger.info('NVIDIA_API_KEY not available - continuing with the selected AI provider');
     }
 
     // Initialize Jarvis Core with secure keys AND local Ollama settings
@@ -267,10 +281,14 @@ async function initializeJarvis() {
 
     // Initialize persistent agent for better performance and live agent experience
     try {
-      await agentManager.initialize(openaiKey, geminiKey, {
+      await agentManager.initialize(openaiKey || undefined, geminiKey || undefined, {
         useOllama: settings.useOllama,
         ollamaUrl: settings.ollamaUrl,
         ollamaModel: settings.ollamaModel
+      }, {
+        useNvidia: settings.aiProvider === 'nvidia',
+        apiKey: nvidiaKey || undefined,
+        model: settings.nvidiaModel
       });
       Logger.success('★ Jarvis Agent initialized and ready for live interactions');
     } catch (error) {
