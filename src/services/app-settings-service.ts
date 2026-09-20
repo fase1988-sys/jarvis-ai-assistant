@@ -25,6 +25,8 @@ interface AppSettings {
   deepgramApiKey?: string;
   anthropicApiKey?: string;
   geminiApiKey?: string;
+  nvidiaApiKey?: string;
+  nvidiaModel?: string;
   // AWS Bedrock credentials
   awsAccessKeyId?: string;
   awsSecretAccessKey?: string;
