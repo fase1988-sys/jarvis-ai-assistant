@@ -3,6 +3,7 @@ import { UnifiedAgent } from "../agents/unified-agent";
 import { LLMProvider } from "../core/llm-provider";
 import { OllamaProvider } from "../core/providers/ollama-provider";
 import { GeminiProvider } from "../core/providers/gemini-provider";
+import { NvidiaNimProvider } from "../core/providers/nvidia-nim-provider";
 
 /**
  * Global agent manager - initializes once at app startup and keeps agent in memory
@@ -25,7 +26,8 @@ class AgentManager {
   async initialize(
     openaiKey: string | undefined,
     geminiKey?: string,
-    ollamaSettings?: { useOllama?: boolean, ollamaUrl?: string, ollamaModel?: string }
+    ollamaSettings?: { useOllama?: boolean, ollamaUrl?: string, ollamaModel?: string },
+    nvidiaSettings?: { useNvidia?: boolean, apiKey?: string, model?: string }
   ): Promise<void> {
     if (this.isInitialized) {
       Logger.debug('🤖 Agent already initialized, skipping...');
@@ -38,7 +40,10 @@ class AgentManager {
       // Priority: Ollama (currently only fully implemented provider)
       // TODO: Add OpenAI and Gemini providers when implemented
 
-      if (ollamaSettings?.useOllama) {
+      if (nvidiaSettings?.useNvidia && nvidiaSettings.apiKey) {
+        Logger.info(`🟢 Initializing with NVIDIA NIM provider (${nvidiaSettings.model})...`);
+        provider = new NvidiaNimProvider(nvidiaSettings.apiKey, nvidiaSettings.model);
+      } else if (ollamaSettings?.useOllama) {
         console.log(`[DEBUG] AgentManager: Creating OllamaProvider (${ollamaSettings.ollamaModel})`);
         Logger.info(`🦙 Initializing with Ollama provider (${ollamaSettings.ollamaModel})...`);
         provider = new OllamaProvider(
