@@ -4,7 +4,7 @@ import Settings from './Settings';
 import { UpdateNotification, UpdateProgress, UpdateReady } from './UpdateComponents';
 import { SuccessModal } from './SuccessModal';
 import { theme, themeComponents } from '../styles/theme';
-import { DashboardView, DictionaryView, DictationView, HelpView, Jarvis2Banner, SupportBanner } from './dashboard/views';
+import { DashboardView, DictionaryView, DictationView, HelpView, SupportBanner } from './dashboard/views';
 
 interface UserStats {
   totalSessions: number;
@@ -651,8 +651,7 @@ const Dashboard: React.FC<DashboardProps> = ({ preloadedData }) => {
         <div style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
           {(currentView === 'dashboard' || currentView === 'dictation') && (
             <>
-              <Jarvis2Banner stats={stats as any} />
-              <SupportBanner stats={stats as any} />
+<SupportBanner stats={stats as any} />
             </>
           )}
           {currentView === 'dashboard' && (

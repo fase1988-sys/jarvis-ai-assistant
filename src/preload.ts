@@ -154,6 +154,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     deepgramApiKey?: string;
     anthropicApiKey?: string;
     geminiApiKey?: string;
+    nvidiaApiKey?: string;
     awsAccessKeyId?: string;
     awsSecretAccessKey?: string;
     awsRegion?: string;

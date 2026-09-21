@@ -25,6 +25,9 @@ interface AppSettings {
   deepgramApiKey?: string;
   anthropicApiKey?: string;
   geminiApiKey?: string;
+  nvidiaApiKey?: string;
+  nvidiaModel?: string;
+  aiProvider?: 'gemini' | 'nvidia';
   // AWS Bedrock credentials
   awsAccessKeyId?: string;
   awsSecretAccessKey?: string;
@@ -89,6 +92,8 @@ export class AppSettingsService {
       privacyConsentGiven: false, // User must explicitly consent
       showWaveform: true, // Show waveform by default
       useOllama: false,
+      aiProvider: 'gemini',
+      nvidiaModel: 'meta/llama-3.1-70b-instruct',
       ollamaUrl: 'http://127.0.0.1:11434',
       ollamaModel: 'llama3.2:1b',
       customDictationPrompt: defaultDictationPrompt,

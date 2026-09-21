@@ -190,6 +190,7 @@ export class SettingsIPCHandlers {
           deepgramApiKey: settings.deepgramApiKey || '',
           anthropicApiKey: settings.anthropicApiKey || '',
           geminiApiKey: settings.geminiApiKey || '',
+          nvidiaApiKey: settings.nvidiaApiKey || '',
           awsAccessKeyId: settings.awsAccessKeyId || '',
           awsSecretAccessKey: settings.awsSecretAccessKey || '',
           awsRegion: settings.awsRegion || '',
@@ -259,6 +260,7 @@ export class SettingsIPCHandlers {
       deepgramApiKey?: string;
       anthropicApiKey?: string;
       geminiApiKey?: string;
+      nvidiaApiKey?: string;
       awsAccessKeyId?: string;
       awsSecretAccessKey?: string;
       awsRegion?: string;
@@ -271,6 +273,7 @@ export class SettingsIPCHandlers {
         if (keys.deepgramApiKey !== undefined) updates.deepgramApiKey = keys.deepgramApiKey;
         if (keys.anthropicApiKey !== undefined) updates.anthropicApiKey = keys.anthropicApiKey;
         if (keys.geminiApiKey !== undefined) updates.geminiApiKey = keys.geminiApiKey;
+        if (keys.nvidiaApiKey !== undefined) updates.nvidiaApiKey = keys.nvidiaApiKey;
         if (keys.awsAccessKeyId !== undefined) updates.awsAccessKeyId = keys.awsAccessKeyId;
         if (keys.awsSecretAccessKey !== undefined) updates.awsSecretAccessKey = keys.awsSecretAccessKey;
         if (keys.awsRegion !== undefined) updates.awsRegion = keys.awsRegion;

@@ -41,6 +41,19 @@ export class SmartBrowserService {
       return false;
     }
 
+    // ChatGPT is an external website, not Jarvis's internal AI provider.
+    // Only open it when the user explicitly asks to open/navigate to ChatGPT.
+    const chatgptTarget = [intent.platform, intent.url]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+    const explicitChatgptOpen = /(?:open|öffne|oeffne|gehe\s+(?:zu|auf)|go\s+to|navigate\s+to)\s+(?:https?:\/\/)?(?:www\.)?(?:chatgpt(?:\.com)?|openai(?:\.com)?)/i.test(command.trim());
+
+    if ((chatgptTarget.includes('chatgpt') || chatgptTarget.includes('openai')) && !explicitChatgptOpen) {
+      Logger.info('🚫 [SmartBrowser] Ignoring implicit ChatGPT/OpenAI navigation; keeping request inside Jarvis');
+      return false;
+    }
+
     // Reject native app commands - these should go to app launcher
     const nativeApps = ['apple mail', 'mail', 'safari', 'chrome', 'spotify app', 'discord app', 'slack app', 'zoom app'];
     if (intent.action === 'open' && nativeApps.includes(intent.platform.toLowerCase())) {

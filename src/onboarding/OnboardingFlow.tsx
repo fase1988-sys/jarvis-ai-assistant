@@ -6,12 +6,7 @@ import VoiceTranscriptionScreen from './VoiceTranscriptionScreen';
 import EmailDictationScreen from './EmailDictationScreen';
 import ApiKeySetupScreen from './ApiKeySetupScreen';
 import PostOnboardingPrompt from './PostOnboardingPrompt';
-import Jarvis2UpgradeCard from './Jarvis2UpgradeCard';
 import { theme, themeComponents } from '../styles/theme';
-
-// Once-per-user guard for the Jarvis 2.0 upgrade offer · localStorage so it
-// doesn't reappear on every onboarding remount / relaunch after dismissal.
-const JARVIS2_OFFER_KEY = 'jarvis2_offer_dismissed_v1';
 
 // Module-level once-per-launch guards. Survive React remount of
 // OnboardingFlow (App.tsx briefly unmounts/remounts the tree during auth
@@ -458,7 +453,6 @@ const OnboardingFlow: React.FC<{ onComplete: () => void }> = ({ onComplete }) =>
   const [userName, setUserName] = useState('');
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [showPostOnboardingPrompt, setShowPostOnboardingPrompt] = useState(false);
-  const [showJarvis2Offer, setShowJarvis2Offer] = useState(false);
   // Sticky once true — set the moment ANY tutorial dictation succeeds so the
   // user only has to prove it once. Drives the canContinue gate on the
   // tutorial steps; analytics shows 96% of onboarders never press Fn after
@@ -498,16 +492,6 @@ const OnboardingFlow: React.FC<{ onComplete: () => void }> = ({ onComplete }) =>
     // Don't trap: one failed attempt is enough to offer an escape.
     setTutorialEscapeReady(true);
   }, []);
-
-  // Jarvis 2.0 upgrade offer: show once to every 1.x user
-  useEffect(() => {
-    try { if (!localStorage.getItem(JARVIS2_OFFER_KEY)) setShowJarvis2Offer(true); } catch { /* */ }
-  }, []);
-
-  const dismissJarvis2Offer = () => {
-    try { localStorage.setItem(JARVIS2_OFFER_KEY, '1'); } catch { /* */ }
-    setShowJarvis2Offer(false);
-  };
 
   // Load existing userName on mount
   useEffect(() => {
@@ -738,7 +722,6 @@ const OnboardingFlow: React.FC<{ onComplete: () => void }> = ({ onComplete }) =>
 
   return (
     <div className={`min-h-screen ${themeComponents.container} font-['Inter',-apple-system,BlinkMacSystemFont,'SF_Pro_Display','SF_Pro_Text',system-ui,sans-serif] -webkit-font-smoothing-antialiased`}>
-      {showJarvis2Offer && <Jarvis2UpgradeCard onDismiss={dismissJarvis2Offer} />}
       {/* Progress bar header */}
       <div className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-xl border-b border-white/10" style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>
         <div className="px-8 py-4">
